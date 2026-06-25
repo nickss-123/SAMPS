@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAPMS — Student Academic Performance Monitoring System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<header>
+  <div class="logo">SAP<span>MS</span> <span class="logo-sub">| Student Academic Performance Monitoring</span></div>
+  <div class="header-meta" id="header-date"></div>
+</header>
+
+<nav>
+  <button class="tab-btn active" data-tab="dashboard" id="tab-dashboard"><span class="tab-icon">📊</span>Dashboard</button>
+  <button class="tab-btn" data-tab="students" id="tab-students"><span class="tab-icon">👥</span>Students</button>
+  <button class="tab-btn" data-tab="grades" id="tab-grades"><span class="tab-icon">📝</span>Enter Grades</button>
+  <button class="tab-btn" data-tab="at-risk" id="tab-at-risk"><span class="tab-icon">⚠️</span>At-Risk Alerts</button>
+</nav>
+
+<main>
+
+<!-- ══ DASHBOARD ══ -->
+<div class="page active" id="page-dashboard">
+  <div class="section-title">Performance Overview</div>
+  <div class="section-sub">Real-time summary across all students and subjects</div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Average GPA</div>
+      <div class="kpi-value" id="kpi-gpa">—</div>
+      <div class="kpi-sub">Target: 3.0 / 4.0</div>
+    </div>
+    <div class="kpi-card mint">
+      <div class="kpi-label">Avg. Attendance</div>
+      <div class="kpi-value" id="kpi-attend">—</div>
+      <div class="kpi-sub">Threshold: 75%</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Assignment Rate</div>
+      <div class="kpi-value" id="kpi-assign">—</div>
+      <div class="kpi-sub">Submitted vs. Total</div>
+    </div>
+    <div class="kpi-card rose">
+      <div class="kpi-label">At-Risk Students</div>
+      <div class="kpi-value" id="kpi-risk">—</div>
+      <div class="kpi-sub">GPA &lt;2.0 or Attend &lt;75%</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">📚 Subject Performance (Avg. Score %)</div>
+      <div class="bar-chart" id="subject-bar-chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🌡️ Subject Risk Heat Map</div>
+      <div class="heat-grid" id="heat-grid"></div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">📋 Class Distribution</div>
+      <div class="donut-wrap">
+        <div id="class-dist-legend" class="donut-legend"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 Attendance by Class</div>
+      <div id="attend-by-class"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STUDENTS ══ -->
+<div class="page" id="page-students">
+  <div class="section-title">Student Registry</div>
+  <div class="section-sub">View, add, and manage all enrolled students</div>
+
+  <div class="card">
+    <div class="card-title">➕ Add New Student</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="inp-name" placeholder="e.g. Maria Santos">
+      </div>
+      <div class="form-group">
+        <label>Class</label>
+        <select id="inp-class">
+          <option value="A">Class A</option>
+          <option value="B">Class B</option>
+          <option value="C">Class C</option>
+          <option value="D">Class D</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="inp-gender">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Attendance %</label>
+        <input type="number" id="inp-attend" placeholder="e.g. 88" min="0" max="100">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" id="btn-add-student">Add Student</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">👥 All Students
+      <span class="count-label" id="student-count-label"></span>
+    </div>
+    <div class="filter-bar">
+      <select id="filter-class">
+        <option value="">All Classes</option>
+        <option value="A">Class A</option>
+        <option value="B">Class B</option>
+        <option value="C">Class C</option>
+        <option value="D">Class D</option>
+      </select>
+      <select id="filter-gender">
+        <option value="">All Genders</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+      <select id="filter-risk">
+        <option value="">All Students</option>
+        <option value="risk">At-Risk Only</option>
+        <option value="safe">Safe Only</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student</th><th>Class</th><th>Gender</th><th>GPA</th>
+            <th>Attendance</th><th>Status</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="student-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GRADES ══ -->
+<div class="page" id="page-grades">
+  <div class="section-title">Enter Grades</div>
+  <div class="section-sub">Record assessment scores for individual students</div>
+
+  <div class="card">
+    <div class="card-title">📝 Grade Entry Form</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Student</label>
+        <select id="grade-student"></select>
+      </div>
+      <div class="form-group">
+        <label>Subject</label>
+        <select id="grade-subject">
+          <option>Mathematics</option>
+          <option>English</option>
+          <option>Science</option>
+          <option>History</option>
+          <option>Computer Studies</option>
+          <option>Physical Education</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Assessment Type</label>
+        <select id="grade-type">
+          <option value="quiz">Quiz (20%)</option>
+          <option value="midterm">Midterm (30%)</option>
+          <option value="assignment">Assignment (20%)</option>
+          <option value="final">Final Exam (30%)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Score (out of 100)</label>
+        <input type="number" id="grade-score" placeholder="e.g. 78" min="0" max="100">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" id="btn-add-grade">Save Grade</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Recent Grade Entries</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Student</th><th>Subject</th><th>Type</th><th>Score</th><th>Grade</th><th>Entered</th></tr>
+        </thead>
+        <tbody id="grades-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AT-RISK ══ -->
+<div class="page" id="page-at-risk">
+  <div class="section-title">⚠️ At-Risk Student Alerts</div>
+  <div class="section-sub">Students flagged for low GPA (&lt;2.0) or low attendance (&lt;75%). Prioritise these for immediate intervention.</div>
+
+  <div id="risk-alerts-container"></div>
+
+  <div class="card">
+    <div class="card-title">🚨 At-Risk Student List</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Student</th><th>Class</th><th>GPA</th><th>Attendance</th><th>Risk Reason</th><th>Action</th></tr>
+        </thead>
+        <tbody id="risk-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ══ MODAL ══ -->
+<div id="modal-overlay">
+  <div class="modal" id="modal-box">
+    <div class="modal-header">
+      <div>
+        <div class="modal-name" id="modal-name">—</div>
+        <div class="modal-meta" id="modal-meta">—</div>
+      </div>
+      <button class="close-btn" id="btn-close-modal">✕</button>
+    </div>
+    <div class="modal-stat-row">
+      <div class="modal-stat">
+        <div class="modal-stat-val" id="modal-gpa">—</div>
+        <div class="modal-stat-lbl">GPA</div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-val" id="modal-attend-val">—</div>
+        <div class="modal-stat-lbl">Attendance</div>
+      </div>
+      <div class="modal-stat">
+        <div class="modal-stat-val" id="modal-status-val">—</div>
+        <div class="modal-stat-lbl">Status</div>
+      </div>
+    </div>
+    <div class="card-title">Subject Scores</div>
+    <div id="modal-subjects"></div>
+  </div>
+</div>
+
+<div id="toast">✓ <span id="toast-msg"></span></div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
